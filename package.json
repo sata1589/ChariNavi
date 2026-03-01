@@ -1,11 +1,24 @@
 {
-  "name": "route-test",
+  "name": "charinavi",
   "type": "module",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.ts",
+  "version": "0.1.0",
+  "description": "危険区域を考慮した自転車向け安全ルート計算ライブラリ",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "prepare": "pnpm run build",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
