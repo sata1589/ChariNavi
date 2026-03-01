@@ -18,12 +18,10 @@ npm 公開はせず、GitHub リポジトリから直接インストールして
 
 ### 1. GitHub からインストール
 
-`OWNER` / `REPO` は実際の GitHub 情報に置き換えてください。
-
 ```bash
-pnpm add github:OWNER/REPO#v0.1.0
+pnpm add github:sata1589/ChariNavi
 # または
-npm install github:OWNER/REPO#v0.1.0
+npm install github:sata1589/ChariNavi
 ```
 
 ### 2. 関数をインポート
