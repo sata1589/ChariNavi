@@ -1,2 +1,26 @@
 # node.js
 node_modules/
+
+# build artifacts
+dist/
+coverage/
+*.tsbuildinfo
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env files
+.env
+.env.*
+!.env.example
+
+# test/cache
+.vitest/
+
+# OS files
+.DS_Store
+Thumbs.db
