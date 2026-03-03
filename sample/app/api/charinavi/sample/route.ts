@@ -2,22 +2,12 @@ import { calculateSafeRoute } from "charinavi";
 import type { DangerZone, RoutePoint } from "charinavi";
 import { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { DEFAULT_DANGER_ZONES } from "../../../../config/danger-zones";
 
 type SampleRouteRequest = {
   startPoint?: RoutePoint;
   endPoint?: RoutePoint;
 };
-
-const DEFAULT_DANGER_ZONES: DangerZone[] = [
-  {
-    id: "zone-1",
-    latitude: 35.67,
-    longitude: 139.74,
-    radius: 150,
-    severity: "high",
-    title: "交通事故多発地点",
-  },
-];
 
 function isValidPoint(value: RoutePoint | undefined): value is RoutePoint {
   return (

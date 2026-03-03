@@ -49,10 +49,12 @@ export function extractRoutePoints(route: DirectionsRoute): RoutePoint[] {
   route.legs.forEach((leg) => {
     leg.steps.forEach((step) => {
       const decoded = decodePolyline(step.polyline.points);
+      const instruction = step.html_instructions.replace(/<[^>]*>/g, "");
       points.push(
         ...decoded.map((point) => ({
           latitude: point.lat,
           longitude: point.lng,
+          address: instruction,
         })),
       );
     });

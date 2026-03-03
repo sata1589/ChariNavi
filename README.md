@@ -1,4 +1,4 @@
-# charinavi
+# ChariNavi
 
 危険区域を考慮して、自転車向けの安全ルートを選択する TypeScript ライブラリです。  
 関数ベース API を採用しており、テストしやすく拡張しやすい構成になっています。
@@ -74,6 +74,10 @@ const result = await calculateSafeRoute({
     preferBikeRoutes: true,
     dangerZoneBuffer: 30,
     maxDetourDistance: 2,
+    safetyWeight: 0.8,
+    distanceWeight: 0.2,
+    shortRouteThresholdKm: 3,
+    maxShortRouteDetourRatio: 1.25,
   },
 });
 
@@ -178,6 +182,10 @@ console.log(result.route.length);
   preferBikeRoutes: boolean;
   dangerZoneBuffer: number; // メートル
   maxDetourDistance: number; // km
+  safetyWeight: number;
+  distanceWeight: number;
+  shortRouteThresholdKm: number;
+  maxShortRouteDetourRatio: number;
 }
 ```
 
@@ -185,6 +193,10 @@ console.log(result.route.length);
 - `preferBikeRoutes`: `true` の場合、高速道路回避など自転車寄り候補を追加取得
 - `dangerZoneBuffer`: 危険区域半径に追加する安全マージン（m）
 - `maxDetourDistance`: 許容する迂回距離（km）
+- `safetyWeight`: 最終選定時の安全性重み（0以上、距離重みと正規化）
+- `distanceWeight`: 最終選定時の距離重み（0以上、安全性重みと正規化）
+- `shortRouteThresholdKm`: 近距離とみなす閾値（km）
+- `maxShortRouteDetourRatio`: 近距離時に許容する遠回り倍率（例: `1.35` = 35% まで）
 
 デフォルト値（`getDefaultSafeRouteOptions()`）:
 
@@ -192,6 +204,10 @@ console.log(result.route.length);
 - `preferBikeRoutes: true`
 - `dangerZoneBuffer: 10`
 - `maxDetourDistance: 2`
+- `safetyWeight: 0.7`
+- `distanceWeight: 0.3`
+- `shortRouteThresholdKm: 3`
+- `maxShortRouteDetourRatio: 1.35`
 
 ## 戻り値の主な項目
 
@@ -204,5 +220,5 @@ console.log(result.route.length);
 
 ## 備考
 
-- 現在の `checkBikePath` は最小実装（常に `false`）です。
-- 自転車道判定を本実装に差し替える場合は `src/domain/bike-path.ts` を拡張してください。
+- `checkBikePath` は現在、Directions の案内文に含まれるキーワード（例: `自転車道`, `cycleway`）で自転車道らしさを判定します。
+- 判定ロジックを調整したい場合は `src/domain/bike-path.ts` のキーワード定義を編集してください。

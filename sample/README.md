@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChariNavi サンプルアプリ
 
-## Getting Started
+このディレクトリは、自転車用経路探索ライブラリ **ChariNavi** を使った Next.js サンプルアプリです。  
+危険エリア（Danger Zone）を考慮したルート探索 API の動作確認ができます。
 
-First, run the development server:
+## 前提
+
+- Node.js 20 以上
+- pnpm
+- Google Maps API キー
+
+## セットアップ
+
+1. `sample` ディレクトリへ移動
+
+   ```bash
+   cd sample
+   ```
+
+2. 依存関係をインストール
+
+   ```bash
+   pnpm install
+   ```
+
+3. 環境変数ファイルを作成して API キーを設定
+
+   ```bash
+   copy sample.env .env.local
+   ```
+
+   `.env.local` の以下 2 つを設定してください。
+   - `GOOGLE_MAPS_API_KEY`
+   - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+
+## 起動方法
+
+開発サーバーを起動:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで `http://localhost:3000` を開きます。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Danger Zone の設定
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+ライブラリ利用者向けの危険エリア設定は以下で管理します。
 
-## Learn More
+- `config/danger-zones.ts`
 
-To learn more about Next.js, take a look at the following resources:
+`DEFAULT_DANGER_ZONES` を編集すると、サンプル API が参照する通行回避エリアを変更できます。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 主な API
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `POST /api/charinavi/sample`
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+リクエストで `startPoint` と `endPoint` を渡すと、ChariNavi による安全寄りルート計算結果を返します。

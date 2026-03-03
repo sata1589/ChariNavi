@@ -31,6 +31,10 @@ export interface SafeRouteOptions {
   preferBikeRoutes: boolean;
   dangerZoneBuffer: number;
   maxDetourDistance: number;
+  safetyWeight: number;
+  distanceWeight: number;
+  shortRouteThresholdKm: number;
+  maxShortRouteDetourRatio: number;
   dangerZones?: DangerZone[];
 }
 

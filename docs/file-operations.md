@@ -42,7 +42,7 @@
 ### src/domain/bike-path.ts
 
 - 自転車道判定の拡張ポイントです。
-- 現在は `checkBikePath` が常に `false` を返す最小実装です。
+- 現在は案内文キーワード（例: `自転車道`, `cycleway`）を用いたヒューリスティック判定を行います。
 
 ## アルゴリズム
 
@@ -55,6 +55,7 @@
 
 - Google Directions の polyline 文字列を座標列へデコード (`decodePolyline`) します。
 - ルート全体の点列を抽出 (`extractRoutePoints`) します。
+- 点列抽出時に、各点へ対応ステップの案内文（HTML除去済み）を `address` として保持します。
 
 ### src/algorithms/detour-generator.ts
 
