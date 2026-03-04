@@ -1,4 +1,9 @@
-import { generateDetourRoutes } from "../algorithms/detour-generator";
+import {
+  buildAvoidanceWaypoints,
+  findIntersectedDangerZones,
+  formatWaypointsForDirections,
+} from "../algorithms/detour-generator";
+import { extractRoutePoints } from "../algorithms/polyline";
 import { RoutePoint, SafeRouteOptions } from "../domain/types";
 import { removeDuplicateRoutes } from "../utils/route-signature";
 import { DirectionsApiResponse, DirectionsRoute } from "./directions-types";
@@ -37,7 +42,6 @@ export async function getMultipleRoutes(
   deps: DirectionsClientDeps = {},
 ): Promise<DirectionsRoute[]> {
   const { apiKey, startPoint, endPoint, options } = input;
-  const routes: DirectionsRoute[] = [];
 
   const baseParams: Record<string, string> = {
     origin: `${startPoint.latitude},${startPoint.longitude}`,
@@ -47,47 +51,65 @@ export async function getMultipleRoutes(
     language: "ja",
   };
 
-  try {
-    const standardRoutes = await fetchRoutes(
-      { ...baseParams, alternatives: "true" },
-      deps,
-    );
-    routes.push(...standardRoutes);
-  } catch {}
+  const baselineRoutes = await fetchRoutes(
+    { ...baseParams, alternatives: "true", avoid: "highways" },
+    deps,
+  );
+  const uniqueBaselineRoutes = removeDuplicateRoutes(baselineRoutes);
 
-  if (options.preferBikeRoutes) {
-    try {
-      const bikeRoutes = await fetchRoutes(
-        { ...baseParams, alternatives: "true", avoid: "highways" },
-        deps,
-      );
-      routes.push(...bikeRoutes);
-    } catch {}
-  }
-
-  if (options.avoidDangerZones) {
-    try {
-      const detourRoutes = await generateDetourRoutes(
-        startPoint,
-        endPoint,
-        {
-          origin: baseParams.origin,
-          destination: baseParams.destination,
-          key: baseParams.key,
-          mode: "bicycling",
-          language: "ja",
-        },
-        options,
-        (params) => fetchRoutes(params, deps),
-      );
-      routes.push(...detourRoutes);
-    } catch {}
-  }
-
-  const uniqueRoutes = removeDuplicateRoutes(routes);
-  if (uniqueRoutes.length === 0) {
+  if (uniqueBaselineRoutes.length === 0) {
     throw new Error("ルートを取得できませんでした");
   }
 
-  return uniqueRoutes;
+  const baselineRoute = uniqueBaselineRoutes[0];
+  if (!baselineRoute) {
+    return uniqueBaselineRoutes;
+  }
+
+  try {
+    const candidateDangerZones = options.dangerZones ?? [];
+    const baselinePoints = extractRoutePoints(baselineRoute);
+    const intersectedZones = findIntersectedDangerZones(
+      baselinePoints,
+      candidateDangerZones,
+      options.dangerZoneBuffer,
+    );
+
+    if (intersectedZones.length === 0) {
+      return uniqueBaselineRoutes;
+    }
+
+    const waypoints = buildAvoidanceWaypoints(
+      startPoint,
+      endPoint,
+      intersectedZones,
+      options.dangerZoneBuffer,
+    );
+
+    if (waypoints.length === 0) {
+      return uniqueBaselineRoutes;
+    }
+
+    const detourRoutes = await fetchRoutes(
+      {
+        ...baseParams,
+        alternatives: "false",
+        waypoints: formatWaypointsForDirections(waypoints),
+      },
+      deps,
+    );
+
+    const mergedRoutes = removeDuplicateRoutes([
+      ...uniqueBaselineRoutes,
+      ...detourRoutes,
+    ]);
+
+    if (mergedRoutes.length === 0) {
+      throw new Error("ルートを取得できませんでした");
+    }
+
+    return mergedRoutes;
+  } catch {}
+
+  return uniqueBaselineRoutes;
 }

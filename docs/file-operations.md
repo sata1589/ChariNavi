@@ -85,7 +85,7 @@
 ### src/services/directions-client.ts
 
 - Directions API 呼び出し (`fetchRoutes`) を担当します。
-- 標準候補・自転車優先候補・迂回候補を統合取得 (`getMultipleRoutes`) します。
+- 標準候補・自転車優先候補を取得後、ベースラインが踏んだ危険区域のみを対象に迂回候補を追加取得 (`getMultipleRoutes`) します。
 - `fetchImpl` を注入可能にし、テスト時のモック差し替えに対応します。
 - `removeDuplicateRoutes` で重複候補を排除します。
 

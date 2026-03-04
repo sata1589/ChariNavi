@@ -6,6 +6,52 @@ interface ScoredRoute extends SafeRouteResult {
   dangerousSegmentCount: number;
 }
 
+function toPointKey(latitude: number, longitude: number): string {
+  return `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+}
+
+function hasOutAndBackPattern(route: SafeRouteResult): boolean {
+  const points = route.route;
+  if (points.length < 3) {
+    return false;
+  }
+
+  const seenEdges = new Set<string>();
+  let reverseEdgeHits = 0;
+  let totalEdges = 0;
+
+  for (let index = 1; index < points.length; index += 1) {
+    const previous = points[index - 1];
+    const current = points[index];
+    const fromKey = toPointKey(previous.latitude, previous.longitude);
+    const toKey = toPointKey(current.latitude, current.longitude);
+
+    if (fromKey === toKey) {
+      continue;
+    }
+
+    const edge = `${fromKey}->${toKey}`;
+    const reverseEdge = `${toKey}->${fromKey}`;
+
+    if (seenEdges.has(reverseEdge)) {
+      reverseEdgeHits += 1;
+    }
+
+    seenEdges.add(edge);
+    totalEdges += 1;
+  }
+
+  if (totalEdges === 0) {
+    return false;
+  }
+
+  if (totalEdges <= 8) {
+    return reverseEdgeHits >= 1;
+  }
+
+  return reverseEdgeHits >= 2 || reverseEdgeHits / totalEdges >= 0.12;
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -116,21 +162,25 @@ export function selectSafestRoute(
     throw new Error("選択可能なルートがありません");
   }
 
-  const routeDistancesKm = routes.map((route) =>
+  const filteredRoutes = routes.filter((route) => !hasOutAndBackPattern(route));
+  const selectableRoutes = filteredRoutes.length > 0 ? filteredRoutes : routes;
+
+  const routeDistancesKm = selectableRoutes.map((route) =>
     parseDistanceTextToKm(route.routeInfo.distance),
   );
   const positiveDistances = routeDistancesKm.filter((distance) => distance > 0);
   const baselineDistanceKm =
     positiveDistances.length > 0 ? Math.min(...positiveDistances) : 0;
 
-  const safestRoutes = routes.filter(
+  const safestRoutes = selectableRoutes.filter(
     (route) => !route.segments.some((segment) => segment.isDangerous),
   );
 
-  let candidateRoutes = safestRoutes.length > 0 ? safestRoutes : routes;
+  let candidateRoutes =
+    safestRoutes.length > 0 ? safestRoutes : selectableRoutes;
 
   if (safestRoutes.length === 0) {
-    const lowToMediumDangerRoutes = routes.filter(
+    const lowToMediumDangerRoutes = selectableRoutes.filter(
       (route) =>
         !route.segments.some((segment) => segment.dangerLevel === "high"),
     );

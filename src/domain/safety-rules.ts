@@ -5,7 +5,7 @@ import {
   RouteSegment,
   SafeRouteOptions,
 } from "./types";
-import { calculateDistance } from "../algorithms/geometry";
+import { doesPathIntersectDangerZone } from "../algorithms/detour-generator";
 
 export function getDangerLevelValue(level: DangerLevel): number {
   switch (level) {
@@ -28,22 +28,21 @@ export function checkDangerousSegment(
   let maxDangerLevel: DangerLevel | undefined;
   let isDangerous = false;
 
-  for (const point of points) {
-    for (const zone of dangerZones) {
-      const distance = calculateDistance(point, {
-        latitude: zone.latitude,
-        longitude: zone.longitude,
-      });
+  for (const zone of dangerZones) {
+    const intersects = doesPathIntersectDangerZone(
+      points,
+      zone,
+      options.dangerZoneBuffer,
+    );
 
-      if (distance <= zone.radius + options.dangerZoneBuffer) {
-        isDangerous = true;
-        const severity = zone.severity ?? "medium";
-        if (
-          !maxDangerLevel ||
-          getDangerLevelValue(severity) > getDangerLevelValue(maxDangerLevel)
-        ) {
-          maxDangerLevel = severity;
-        }
+    if (intersects) {
+      isDangerous = true;
+      const severity = zone.severity ?? "medium";
+      if (
+        !maxDangerLevel ||
+        getDangerLevelValue(severity) > getDangerLevelValue(maxDangerLevel)
+      ) {
+        maxDangerLevel = severity;
       }
     }
   }

@@ -22,6 +22,7 @@ type SampleResult = {
   startPoint?: RoutePoint;
   endPoint?: RoutePoint;
   dangerZones?: DangerZone[];
+  googleDirectionsApiCallCount?: number;
 };
 
 let googleMapsConfigured = false;
@@ -287,7 +288,9 @@ export default function Home() {
       route.forEach((point) => bounds.extend(toLatLng(point)));
       mapRef.current.fitBounds(bounds);
 
-      setMessage("ルートを表示しました。");
+      setMessage(
+        `ルートを表示しました。（Google Directions API 呼び出し回数: ${data.googleDirectionsApiCallCount ?? 0}回）`,
+      );
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "ルート検索に失敗しました。",

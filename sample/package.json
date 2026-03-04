@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
-    "charinavi": "github:sata1589/ChariNavi",
+    "charinavi": "link:..",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"

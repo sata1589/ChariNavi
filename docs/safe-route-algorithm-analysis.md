@@ -18,17 +18,19 @@
 
 ### 2.1 標準候補
 
-- Google Directions API (`mode=bicycling`, `alternatives=true`) を取得
+- Google Directions API (`mode=bicycling`, `alternatives=true`, `avoid=highways`) を取得
 
 ### 2.2 自転車優先候補（`preferBikeRoutes` が true のとき）
 
-- `avoid=highways` を付けた候補を追加取得
+- 自転車特化のため、初期取得自体を `avoid=highways` 前提で実施
 
 ### 2.3 危険ゾーン迂回候補（`avoidDangerZones` が true のとき）
 
-- 各 danger zone について、中心から東西南北4方向に迂回点を生成
-- 迂回点距離は `zone.radius + 200m`
-- 各迂回点を `waypoints` にして `alternatives=false` で取得
+- 初回取得したベースラインルート（先頭）を1本選ぶ
+- ベースラインルートが実際に通過した danger zone のみ抽出する
+- 抽出された zone を基に、左右回避シミュレーションで waypoint 列を算出
+- waypoint 付きで Directions API を 1 回だけ再呼び出し（`alternatives=false`）
+- ベースラインがどの danger zone も踏まない場合、迂回 API 呼び出しは行わない
 
 最後に `removeDuplicateRoutes` で重複候補を除去します。
 

@@ -19,6 +19,7 @@ function isValidPoint(value: RoutePoint | undefined): value is RoutePoint {
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  let googleDirectionsApiCallCount = 0;
 
   if (!apiKey) {
     return NextResponse.json(
@@ -55,18 +56,40 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await calculateSafeRoute({
-      apiKey,
-      startPoint: body.startPoint,
-      endPoint: body.endPoint,
-      dangerZones: DEFAULT_DANGER_ZONES,
-      options: {
-        avoidDangerZones: true,
-        preferBikeRoutes: true,
-        dangerZoneBuffer: 20,
-        maxDetourDistance: 2,
+    const result = await calculateSafeRoute(
+      {
+        apiKey,
+        startPoint: body.startPoint,
+        endPoint: body.endPoint,
+        dangerZones: DEFAULT_DANGER_ZONES,
+        options: {
+          avoidDangerZones: true,
+          preferBikeRoutes: true,
+          dangerZoneBuffer: 20,
+          maxDetourDistance: 2,
+        },
       },
-    });
+      {
+        fetchImpl: async (input, init) => {
+          const url =
+            typeof input === "string"
+              ? input
+              : input instanceof URL
+                ? input.toString()
+                : input.url;
+
+          if (url.includes("maps.googleapis.com/maps/api/directions")) {
+            googleDirectionsApiCallCount += 1;
+          }
+
+          return fetch(input, init);
+        },
+      },
+    );
+
+    console.info(
+      `[sample/api] Google Directions API calls: ${googleDirectionsApiCallCount}`,
+    );
 
     return NextResponse.json({
       ok: true,
@@ -79,12 +102,14 @@ export async function POST(request: NextRequest) {
       warningCount: result.warnings.length,
       alternativeCount: result.alternativeRoutes?.length ?? 0,
       routePointCount: result.route.length,
+      googleDirectionsApiCallCount,
     });
   } catch (error) {
     return NextResponse.json(
       {
         ok: false,
         message: error instanceof Error ? error.message : "unknown error",
+        googleDirectionsApiCallCount,
       },
       { status: 500 },
     );
