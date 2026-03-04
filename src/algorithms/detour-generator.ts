@@ -135,7 +135,11 @@ export function doesPathIntersectDangerZone(
   for (let index = 0; index < pathPoints.length - 1; index += 1) {
     const segmentStart = pathPoints[index];
     const segmentEnd = pathPoints[index + 1];
-    const { distance } = calculateSegmentZoneDistance(segmentStart, segmentEnd, zone);
+    const { distance } = calculateSegmentZoneDistance(
+      segmentStart,
+      segmentEnd,
+      zone,
+    );
 
     if (distance <= threshold) {
       return true;
